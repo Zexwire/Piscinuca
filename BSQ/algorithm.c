@@ -60,7 +60,7 @@ int	ft_natoi(char *str, int *num, int size)
 	*num = 0;
 	while (*str != '\0' && (*str == ' ' || (*str >= 9 && *str <= 13)))
 		++str;
-	if (*str != '\0' && (*str == '-' || *str == '+'))
+	if (*str != '\0' && (*str < '0' || *str > '9'))
 		return (FAIL);
 	i = 0;
 	while ((*str && *str >= '0' && *str <= '9') && i < size)
@@ -74,7 +74,7 @@ int	ft_natoi(char *str, int *num, int size)
 		return (FAIL);
 	return (SUCCESS);
 }
-
+//FIXME: no dupear aqui, sino  inicializar unicamente y dupear en read
 t_map	new_map(t_data params, int **tab)
 {
 	t_map	new;
@@ -88,6 +88,18 @@ t_map	new_map(t_data params, int **tab)
 		++i; 
 	}
 	return (new);
+}
+
+int init_params(char *data_buffer, t_data *params, int size)
+{
+	if (size < 4)
+		return (FAIL);
+	params->cell_empty = data_buffer[size - 3];
+	params->cell_obs = data_buffer[size - 2];
+	params->cell_fill = data_buffer[size - 1];
+	if (ft_natoi(data_buffer, params->depth, size - 3) == FAIL
+		|| check_params(&params) == FAIL)
+		return (FAIL);
 }
 
 void	free_map(t_map *map)
@@ -105,7 +117,7 @@ void	free_map(t_map *map)
 
 int	get_largest_square(t_map *map, int **square_coords)
 {
-	//aplicar down up
+	//TODO: aplicar down up
 
 	//buscar el más grande
 
@@ -113,8 +125,7 @@ int	get_largest_square(t_map *map, int **square_coords)
 
 int	paint_largest_square(char *map_path, int **square_coords)
 {
-	//volvera abrir el archivo || dejarlo abierto
-	//y pintar el cuadrado
+	//TODO:  pintar el cuadrado
 }
 
 //open
@@ -139,15 +150,37 @@ int	treat_map(char *path, t_map *map)
 	close(fd);
 	return (SUCCESS);
 }
-//comprobar que no faltan y que no sean idénticos
+//FIXME: que no sean nulos(comprobar despues)
 int	check_params(t_data *params)
+{
+	if (params->cell_empty == params->cell_fill
+		|| params->cell_empty == params->cell_obs
+		|| params->cell_fill == params->cell_obs)
+		return (FAIL);
+}
+//TODO: pasar del buffer de char a buffer de ints
+int	*translate_buffer(char *data_buffer, t_data *params)
 {
 
 }
-//pasar del buffer de char a buffer de ints
-int	*translate_buffer(char *data_buffer)
-{
 
+int	treat_first_line(int fd, t_map *map, char *c)
+{
+	int		aux;
+	int		i;
+	char	*data_buffer;
+
+	aux = read(fd, &c, 1);
+	i = 0;
+	while (aux != 0 && c != '\n')
+	{
+		if (c < ' ' || 126 < c)
+			return (FAIL);
+		data_buffer[i] = c;
+		aux = read(fd, &c, 1);
+		++i;
+	}
+	//map->value[0] = translate_buffer(data_buffer);
 }
 
 //read ¡¡¡¡¡¡¡¡¡
@@ -163,20 +196,16 @@ int read_map(int fd, t_map *map)
 	i = 0;
 	while (aux != 0 && c != '\n')
 	{
-		if (c < ' ' || 126 < c)
+		if (c < ' ' || '~' < c)
 			return (FAIL);
 		data_buffer[i] = c;
 		aux = read(fd, &c, 1);
 		++i;
 	}
-	params.cell_empty = data_buffer[i - 3];
-	params.cell_obs = data_buffer[i -2];
-	params.cell_fill = data_buffer[i - 1];
-	if (ft_natoi(data_buffer, params.depth, i - 3) == FAIL
-		|| check_params(&params) == FAIL)
+	if (init_params(data_buffer, &params, i) == FAIL || c != '\n')
 		return (FAIL);
-	i = 0;
-	//procesar primera linea para length
+	//TODO: procesar primera linea para length e inicializar el mapa
+	i = 1;
 	while (aux != 0)
 	{
 		if (c == '\n')
@@ -184,14 +213,14 @@ int read_map(int fd, t_map *map)
 			aux = read(fd, &c, 1);
 			continue ;
 		}
-		//procesar el resto, con condiciones de FAIL
-		map->value[i] = translate_buffer(data_buffer);
+		//TODO: procesar el resto, con condiciones de FAIL
+		map->value[i] = translate_buffer(data_buffer, &params);
 		i++;
 	}
 	return (SUCCESS);
 }
 
-//read input válido de mapa (una vez sacado como leer el argumento estaría)
+//TODO: read input válido de mapa (una vez sacado como leer el argumento estaría)
 int read_input(t_map *map)
 {
 
@@ -204,7 +233,6 @@ void	compute_arguments(char *map_path ,t_map *map, int **square_coords)
 		ft_putstr(ERROR);
 	if (get_largest_square(map, square_coords) == FAIL)
 		ft_putstr(ERROR);
-	//Se pintan en el archivo o se pintan en pantalla?
 	if (paint_largest_square(map_path, square_coords) == FAIL)
 		ft_putstr(ERROR);
 }
@@ -219,11 +247,11 @@ int	main(int argc, char **argv)
 	if (argc == 1)
 	{
 		read_input(&map);
-		//supongo que aqui solo quieren que pintes por pantalla
 		compute_arguments(map_path, &map, &square_coords);
 	}
 	else
 	{
+		argv++;
 		while (*argv)
 		{
 			map_path = *argv;

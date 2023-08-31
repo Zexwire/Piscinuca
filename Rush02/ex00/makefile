@@ -10,12 +10,10 @@
 #                                                                              #
 # **************************************************************************** #
 
-SRC1	= main.c sort_utils.c dictionary_data_read.c dictionary_read.c
-SRC2	= int_utils.c map_data.c print_numbers.c str_utils.c translator.c
+SRC	= main.c sort_utils.c dictionary_data_read.c dictionary_read.c \
+	int_utils.c map_data.c print_numbers.c str_utils.c translator.c
 
-OBJ = $(SRC1:.c=.o) $(SRC2:.c=.o)
-
-HEAD = data.h dictionary.h utils.h
+OBJ = $(SRC:.c=.o)
 
 CC = cc
 CFLAGS = -Wall -Wextra -Werror
@@ -24,7 +22,7 @@ NAME = rush-02
 
 all : $(NAME) 
 
-$(NAME) : $(HEAD) $(OBJ)
+$(NAME) : $(OBJ)
 	$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
 
 clean :
