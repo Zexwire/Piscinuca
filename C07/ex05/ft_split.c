@@ -40,7 +40,7 @@ int	count_words(char *str, char *charset)
 	{
 		if (char_is_separator(str[i + 1], charset) == 1
 			&& char_is_separator(str[i], charset) == 0)
-		words++;
+			words++;
 		i++;
 	}
 	return (words);
@@ -75,7 +75,7 @@ void	split_str(char **split, char *str, char *charset)
 		{
 			j = 0;
 			while (char_is_separator(str[i + j], charset) == 0)
-			j++;
+				j++;
 			split[word] = (char *)malloc(sizeof(char) * (j + 1));
 			write_word(split[word], str + i, charset);
 			i += j;
